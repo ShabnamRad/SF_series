@@ -869,14 +869,14 @@ Proof.
   - simpl. destruct a'.
 
 
- induction m as [|a' IHa'|b' IHb'].
+(** induction m as [|a' IHa'|b' IHb'].
   - reflexivity.
   - destruct a' eqn:Aeq.
     + reflexivity.
     + destruct (normalize (A (A b))) eqn:NormA.
       * reflexivity.
       * destruct b0 eqn:Beq.
-        { simpl. } Admitted.
+        { simpl. }**) Admitted.
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_binary_inverse_c : option (nat*string) := None.
