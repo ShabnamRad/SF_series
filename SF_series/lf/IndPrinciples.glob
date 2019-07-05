@@ -124,9 +124,9 @@ R13428:13428 LF.IndPrinciples <> n var
 R13500:13507 LF.Induction <> plus_n_O thm
 R13500:13507 LF.Induction <> plus_n_O thm
 R13500:13507 LF.Induction <> plus_n_O thm
-R13591:13599 LF.Induction <> plus_n_Sm prfax
-R13591:13599 LF.Induction <> plus_n_Sm prfax
-R13591:13599 LF.Induction <> plus_n_Sm prfax
+R13591:13599 LF.Induction <> plus_n_Sm thm
+R13591:13599 LF.Induction <> plus_n_Sm thm
+R13591:13599 LF.Induction <> plus_n_Sm thm
 prf 14014:14024 <> plus_comm''
 R14041:14043 Coq.Init.Datatypes <> nat ind
 R14053:14055 Coq.Init.Logic <> ::type_scope:x_'='_x not
@@ -139,9 +139,9 @@ R14060:14060 LF.IndPrinciples <> n var
 R14192:14199 LF.Induction <> plus_n_O thm
 R14192:14199 LF.Induction <> plus_n_O thm
 R14192:14199 LF.Induction <> plus_n_O thm
-R14273:14281 LF.Induction <> plus_n_Sm prfax
-R14273:14281 LF.Induction <> plus_n_Sm prfax
-R14273:14281 LF.Induction <> plus_n_Sm prfax
+R14273:14281 LF.Induction <> plus_n_Sm thm
+R14273:14281 LF.Induction <> plus_n_Sm thm
+R14273:14281 LF.Induction <> plus_n_Sm thm
 R17789:17796 LF.IndProp <> even_ind scheme
 prf 18751:18756 <> ev_ev'
 R18776:18779 Coq.Init.Logic <> ::type_scope:x_'->'_x not

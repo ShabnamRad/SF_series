@@ -1472,15 +1472,45 @@ Proof.
     definition is correct, prove the lemma [eqb_list_true_iff]. *)
 
 Fixpoint eqb_list {A : Type} (eqb : A -> A -> bool)
-                  (l1 l2 : list A) : bool
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+                  (l1 l2 : list A) : bool :=
+  match l1 with
+      | [] => 
+          match l2 with 
+            | [] => true
+            | _ => false
+          end
+      | h1::t1 => 
+          match l2 with
+            | [] => false
+            | h2::t2 => eqb h1 h2 && eqb_list eqb t1 t2
+          end
+    end.
 
 Lemma eqb_list_true_iff :
   forall A (eqb : A -> A -> bool),
     (forall a1 a2, eqb a1 a2 = true <-> a1 = a2) ->
     forall l1 l2, eqb_list eqb l1 l2 = true <-> l1 = l2.
 Proof.
-(* FILL IN HERE *) Admitted.
+  intros. generalize dependent l2. generalize dependent l1.
+  induction l1 as [|h1 t1 IH1].
+  - destruct l2 as [|h2 t2].
+    + split. reflexivity. reflexivity.
+    + split. discriminate. discriminate.
+  - induction l2 as [|h2 t2 IH2].
+    + split. discriminate. discriminate.
+    + simpl. split.
+      * intros H0. apply andb_true_iff in H0.
+        destruct H0 as [H1 H2].
+        apply IH1 in H2.
+        apply H in H1.
+        rewrite H1. rewrite H2. reflexivity.
+      * intros. injection H0. intros H1 H2.
+        apply andb_true_iff.
+        split.
+          apply H. apply H2.
+          rewrite IH1. apply H1.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, recommended (All_forallb)  
@@ -1500,7 +1530,14 @@ Fixpoint forallb {X : Type} (test : X -> bool) (l : list X) : bool :=
 Theorem forallb_true_iff : forall X test (l : list X),
    forallb test l = true <-> All (fun x => test x = true) l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. generalize dependent l. induction l as [| h t IH].
+  - split. reflexivity. reflexivity.
+  - split.
+    + simpl. intros H. apply andb_true_iff in H. destruct H as [H1 H2]. split.
+      * apply H1.
+      * apply IH. apply H2.
+    + simpl. intros [H1 H2]. rewrite H1. apply IH in H2. apply H2.
+Qed.
 
 (** Are there any important properties of the function [forallb] which
     are not captured by this specification? *)
@@ -1638,7 +1675,8 @@ Qed.
 Theorem excluded_middle_irrefutable: forall (P:Prop),
   ~ ~ (P \/ ~ P).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  unfold not. intros. apply H. right. intros. apply H. left. apply H0.
+Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, advanced (not_exists_dist)  
@@ -1659,7 +1697,10 @@ Theorem not_exists_dist :
   forall (X:Type) (P : X -> Prop),
     ~ (exists x, ~ P x) -> (forall x, P x).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  unfold excluded_middle. intros. destruct (H (P x)).
+  - apply H1.
+  - exfalso. apply H0. exists x. apply H1.
+Qed.
 (** [] *)
 
 (** **** Exercise: 5 stars, standard, optional (classical_axioms)  

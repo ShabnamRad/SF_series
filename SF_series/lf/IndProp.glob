@@ -821,9 +821,9 @@ R34657:34658 LF.IndProp <> re var
 R34633:34636 LF.IndProp <> :::x_'=~'_x not
 R34632:34632 LF.IndProp <> s var
 R34637:34638 LF.IndProp <> re var
-R34701:34709 LF.Poly <> app_nil_r prfax
-R34701:34709 LF.Poly <> app_nil_r prfax
-R34701:34709 LF.Poly <> app_nil_r prfax
+R34701:34709 LF.Poly <> app_nil_r thm
+R34701:34709 LF.Poly <> app_nil_r thm
+R34701:34709 LF.Poly <> app_nil_r thm
 R34726:34733 LF.IndProp <> MStarApp constr
 R34737:34738 LF.Poly <> :::'['_']' not
 R34726:34733 LF.IndProp <> MStarApp constr
@@ -928,18 +928,18 @@ R37035:37035 LF.IndProp <> x var
 R37020:37023 LF.IndProp <> :::x_'=~'_x not
 R37019:37019 LF.IndProp <> s var
 R37024:37025 LF.IndProp <> re var
-R37391:37400 LF.Logic <> In_app_iff prfax
-R37391:37400 LF.Logic <> In_app_iff prfax
-R37391:37400 LF.Logic <> In_app_iff prfax
-R37577:37586 LF.Logic <> In_app_iff prfax
-R37577:37586 LF.Logic <> In_app_iff prfax
-R37577:37586 LF.Logic <> In_app_iff prfax
-R37652:37661 LF.Logic <> In_app_iff prfax
-R37652:37661 LF.Logic <> In_app_iff prfax
-R37652:37661 LF.Logic <> In_app_iff prfax
-R38323:38332 LF.Logic <> In_app_iff prfax
-R38323:38332 LF.Logic <> In_app_iff prfax
-R38323:38332 LF.Logic <> In_app_iff prfax
+R37391:37400 LF.Logic <> In_app_iff thm
+R37391:37400 LF.Logic <> In_app_iff thm
+R37391:37400 LF.Logic <> In_app_iff thm
+R37577:37586 LF.Logic <> In_app_iff thm
+R37577:37586 LF.Logic <> In_app_iff thm
+R37577:37586 LF.Logic <> In_app_iff thm
+R37652:37661 LF.Logic <> In_app_iff thm
+R37652:37661 LF.Logic <> In_app_iff thm
+R37652:37661 LF.Logic <> In_app_iff thm
+R38323:38332 LF.Logic <> In_app_iff thm
+R38323:38332 LF.Logic <> In_app_iff thm
+R38323:38332 LF.Logic <> In_app_iff thm
 def 38687:38698 <> re_not_empty
 R38718:38724 LF.IndProp <> reg_exp ind
 R38726:38726 LF.IndProp <> T var
@@ -1025,9 +1025,9 @@ R42080:42083 LF.IndProp <> Star constr
 R42085:42086 LF.IndProp <> re var
 R42176:42179 LF.IndProp <> Star constr
 R42176:42179 LF.IndProp <> Star constr
-R43099:43107 LF.Poly <> app_assoc prfax
-R43099:43107 LF.Poly <> app_assoc prfax
-R43099:43107 LF.Poly <> app_assoc prfax
+R43099:43107 LF.Poly <> app_assoc thm
+R43099:43107 LF.Poly <> app_assoc thm
+R43099:43107 LF.Poly <> app_assoc thm
 R43120:43127 LF.IndProp <> MStarApp constr
 R43120:43127 LF.IndProp <> MStarApp constr
 prf 43504:43510 <> MStar''
@@ -1106,9 +1106,9 @@ R45012:45012 LF.IndProp <> n var
 R45019:45022 LF.IndProp Pumping napp def
 R45026:45026 LF.IndProp <> l var
 R45024:45024 LF.IndProp <> m var
-R45122:45130 LF.Poly <> app_assoc prfax
-R45122:45130 LF.Poly <> app_assoc prfax
-R45122:45130 LF.Poly <> app_assoc prfax
+R45122:45130 LF.Poly <> app_assoc thm
+R45122:45130 LF.Poly <> app_assoc thm
+R45122:45130 LF.Poly <> app_assoc thm
 prf 45666:45672 Pumping pumping
 R45692:45698 LF.IndProp <> reg_exp ind
 R45700:45700 LF.IndProp <> T var
