@@ -1115,13 +1115,17 @@ Qed.
 Lemma empty_is_empty : forall T (s : list T),
   ~ (s =~ EmptySet).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  unfold not. intros. inversion H.
+Qed.
 
 Lemma MUnion' : forall T (s : list T) (re1 re2 : @reg_exp T),
   s =~ re1 \/ s =~ re2 ->
   s =~ Union re1 re2.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros T s re1 re2 [H | H].
+  - apply MUnionL. apply H.
+  - apply MUnionR. apply H.
+Qed.
 
 (** The next lemma is stated in terms of the [fold] function from the
     [Poly] chapter: If [ss : list (list T)] represents a sequence of
@@ -1132,7 +1136,11 @@ Lemma MStar' : forall T (ss : list (list T)) (re : reg_exp),
   (forall s, In s ss -> s =~ re) ->
   fold app ss [] =~ Star re.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. induction ss as [|h t].
+  - simpl. apply MStar0.
+  - simpl. apply MStarApp. apply H. simpl. left. reflexivity. apply IHt. intros. apply H. simpl. right. apply H0.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 4 stars, standard, optional (reg_exp_of_list_spec)  
@@ -1143,7 +1151,16 @@ Proof.
 Lemma reg_exp_of_list_spec : forall T (s1 s2 : list T),
   s1 =~ reg_exp_of_list s2 <-> s1 = s2.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros T s1 s2. generalize dependent s1. induction s2 as [|h t].
+  - split.
+    + intros H. inversion H. reflexivity.
+    + intros H. simpl. inversion H. apply MEmpty.
+  - split.
+    + intros H. simpl in H. inversion H. inversion H3. simpl. apply IHt in H4. rewrite H4. reflexivity.
+    + intros H. simpl. rewrite H. replace (h :: t) with ([h] ++ t).
+      apply MApp. apply MChar. apply IHt. reflexivity. reflexivity.
+Qed.
+
 (** [] *)
 
 (** Since the definition of [exp_match] has a recursive
@@ -1226,13 +1243,46 @@ Qed.
     regular expression matches some string. Prove that your function
     is correct. *)
 
-Fixpoint re_not_empty {T : Type} (re : @reg_exp T) : bool
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Fixpoint re_not_empty {T : Type} (re : @reg_exp T) : bool :=
+  match re with
+    | EmptySet => false
+    | EmptyStr => true
+    | Char _ => true
+    | App re1 re2 => andb (re_not_empty re1) (re_not_empty re2)
+    | Union re1 re2 => orb (re_not_empty re1) (re_not_empty re2)
+    | Star _ => true
+  end.
 
 Lemma re_not_empty_correct : forall T (re : @reg_exp T),
   (exists s, s =~ re) <-> re_not_empty re = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. split.
+  - intros H. destruct H as [s Hmatch].
+    induction Hmatch
+    as [| x'
+        | s1 re1 s2 re2 Hmatch1 IH1 Hmatch2 IH2
+        | s1 re1 re2 Hmatch IH | re1 s2 re2 Hmatch IH
+        | re | s1 s2 re Hmatch1 IH1 Hmatch2 IH2].
+    + reflexivity.
+    + reflexivity.
+    + simpl. rewrite IH1. rewrite IH2. reflexivity.
+    + simpl. rewrite IH. reflexivity.
+    + simpl. rewrite IH. destruct (re_not_empty re1). reflexivity. reflexivity.
+    + reflexivity.
+    + reflexivity.
+  - intros H. induction re.
+    + discriminate H.
+    + exists []. apply MEmpty.
+    + exists [t]. apply MChar.
+    + simpl in H. rewrite andb_true_iff in H. destruct H as [H1 H2].
+      destruct (IHre1 H1) as [s1 IHm1]. destruct (IHre2 H2) as [s2 IHm2].
+      exists (s1 ++ s2). apply MApp. apply IHm1. apply IHm2.
+    + simpl in H. rewrite orb_true_iff in H. destruct H as [H | H].
+      * destruct (IHre1 H) as [s' IH]. exists s'. apply MUnionL. apply IH.
+      * destruct (IHre2 H) as [s' IH]. exists s'. apply MUnionR. apply IH.
+    + exists []. apply MStar0.
+Qed.
+
 (** [] *)
 
 (* ================================================================= *)
@@ -1371,7 +1421,24 @@ Lemma MStar'' : forall T (s : list T) (re : reg_exp),
     s = fold app ss []
     /\ forall s', In s' ss -> s' =~ re.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. remember (Star re) as re'.
+  induction H
+    as [|x'|s1 re1 s2' re2 Hmatch1 IH1 Hmatch2 IH2
+        |s1 re1 re2 Hmatch IH|re1 s2' re2 Hmatch IH
+        |re''|s1 s2' re'' Hmatch1 IH1 Hmatch2 IH2].
+  - discriminate.
+  - discriminate.
+  - discriminate.
+  - discriminate.
+  - discriminate.
+  - inversion Heqre'. exists []. split. reflexivity. intros. inversion H.
+  - destruct (IH2 Heqre') as [ss' [L R]]. exists (s1 :: ss'). split.
+    + simpl. rewrite L. reflexivity.
+    + intros s' H. simpl in H. destruct H as [H | H].
+      * rewrite <- H. inversion Heqre'. rewrite H1 in Hmatch1. apply Hmatch1.
+      * apply R. apply H.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 5 stars, advanced (pumping)  
@@ -1455,7 +1522,8 @@ Proof.
        | re | s1 s2 re Hmatch1 IH1 Hmatch2 IH2 ].
   - (* MEmpty *)
     simpl. omega.
-  (* FILL IN HERE *) Admitted.
+  - simpl. omega.
+  - simpl. Admitted.
 
 End Pumping.
 (** [] *)
@@ -1530,42 +1598,13 @@ Qed.
 (** **** Exercise: 2 stars, standard, recommended (reflect_iff)  *)
 Theorem reflect_iff : forall P b, reflect P b -> (P <-> b = true).
 Proof.
-  (* FILL IN HERE *) Admitted.
-(** [] *)
-
-(** The advantage of [reflect] over the normal "if and only if"
-    connective is that, by destructing a hypothesis or lemma of the
-    form [reflect P b], we can perform case analysis on [b] while at
-    the same time generating appropriate hypothesis in the two
-    branches ([P] in the first subgoal and [~ P] in the second). *)
-
-Lemma eqbP : forall n m, reflect (n = m) (n =? m).
-Proof.
-  intros n m. apply iff_reflect. rewrite eqb_eq. reflexivity.
-Qed.
-
-(** A smoother proof of [filter_not_empty_In] now goes as follows.
-    Notice how the calls to [destruct] and [apply] are combined into a
-    single call to [destruct]. *)
-
-(** (To see this clearly, look at the two proofs of
-    [filter_not_empty_In] with Coq and observe the differences in
-    proof state at the beginning of the first case of the
-    [destruct].) *)
-
-Theorem filter_not_empty_In' : forall n l,
-  filter (fun x => n =? x) l <> [] ->
-  In n l.
-Proof.
-  intros n l. induction l as [|m l' IHl'].
-  - (* l = [] *)
-    simpl. intros H. apply H. reflexivity.
-  - (* l = m :: l' *)
-    simpl. destruct (eqbP n m) as [H | H].
-    + (* n = m *)
-      intros _. rewrite H. left. reflexivity.
-    + (* n <> m *)
-      intros H'. right. apply IHl'. apply H'.
+  intros P b H. destruct H.
+  - split. intros. reflexivity. intros. apply H.
+  - split.
+    + intros Hp.
+      assert (A: P /\ ~P -> False). { unfold not. intros [H1 H2]. apply H2. apply H1. }
+      exfalso. apply A. split. apply Hp. apply H.
+    + intros. discriminate.
 Qed.
 
 (** **** Exercise: 3 stars, standard, recommended (eqbP_practice)  
@@ -1581,7 +1620,15 @@ Fixpoint count n l :=
 Theorem eqbP_practice : forall n l,
   count n l = 0 -> ~(In n l).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n l H. induction l.
+  - unfold not. intros Hin. apply in_not_nil in Hin. apply Hin. reflexivity.
+  - unfold not. simpl. intros [H1 | H2].
+    + rewrite H1 in H. simpl in H. rewrite <-  eqb_refl in H. discriminate H.
+    + simpl in H. destruct (n =? x).
+      * discriminate H.
+      * simpl in H. apply (IHl H) in H2. apply H2.
+Qed.
+
 (** [] *)
 
 (** This small example shows how reflection gives us a small gain in
