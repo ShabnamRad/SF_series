@@ -1628,7 +1628,7 @@ Proof.
     + rewrite H1 in H. simpl in H. rewrite <-  eqb_refl in H. discriminate H.
     + simpl in H. destruct (n =? x).
       * discriminate H.
-      * simpl in H. apply (IHl H) in H2. apply H2.
+      * simpl in H. apply (IHl H) in H2. apply H2. Search Eq.
 Qed.
 
 (** [] *)
@@ -1663,8 +1663,10 @@ Qed.
     [nostutter]. *)
 
 Inductive nostutter {X:Type} : list X -> Prop :=
- (* FILL IN HERE *)
-.
+  |nstut_nil : nostutter []
+  |nstut_one x: nostutter [x]
+  |nstut_cons x h t: nostutter (h::t) -> x <> h -> nostutter (x::h::t).
+
 (** Make sure each of these tests succeeds, but feel free to change
     the suggested proof (in comments) if the given one doesn't work
     for you.  Your definition might be different from ours and still
@@ -1676,34 +1678,25 @@ Inductive nostutter {X:Type} : list X -> Prop :=
     example with more basic tactics.)  *)
 
 Example test_nostutter_1: nostutter [3;1;4;1;5;6].
-(* FILL IN HERE *) Admitted.
-(* 
-  Proof. repeat constructor; apply eqb_neq; auto.
-  Qed.
-*)
+Proof. repeat constructor; apply eqb_neq; auto. Qed.
+
 
 Example test_nostutter_2:  nostutter (@nil nat).
-(* FILL IN HERE *) Admitted.
-(* 
-  Proof. repeat constructor; apply eqb_neq; auto.
-  Qed.
-*)
+Proof. apply nstut_nil. Qed.
+(* Proof. repeat constructor; apply eqb_neq; auto. Qed.*)
 
 Example test_nostutter_3:  nostutter [5].
-(* FILL IN HERE *) Admitted.
-(* 
-  Proof. repeat constructor; apply eqb_false; auto. Qed.
-*)
+Proof. apply nstut_one. Qed.
+(* Proof. repeat constructor; apply eqb_false; auto. Qed.*)
 
 Example test_nostutter_4:      not (nostutter [3;1;1;4]).
-(* FILL IN HERE *) Admitted.
-(* 
-  Proof. intro.
+Proof. 
+  unfold not. intros. inversion H. inversion H2. apply H9. reflexivity. Qed.
+(* Proof. intro.
   repeat match goal with
     h: nostutter _ |- _ => inversion h; clear h; subst
   end.
-  contradiction Hneq0; auto. Qed.
-*)
+  contradiction Hneq0; auto. Qed.*)
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_nostutter : option (nat*string) := None.
@@ -1740,7 +1733,30 @@ Definition manual_grade_for_nostutter : option (nat*string) := None.
     to be a merge of two others.  Do this with an inductive relation,
     not a [Fixpoint].)  *)
 
-(* FILL IN HERE *)
+Inductive inorder_merge {X: Type}: list X -> list X -> list X -> Prop :=
+  |im_nil: inorder_merge [] [] []
+  |im_L x l1 l2 l (H: inorder_merge l1 l2 l): inorder_merge (x :: l1) l2 (x :: l)
+  |im_R x l1 l2 l (H: inorder_merge l1 l2 l): inorder_merge l1 (x :: l2) (x :: l)
+.
+
+Theorem filter_challenge {X: Type}: forall (test: X -> bool) (l1 l2 l: list X), inorder_merge l1 l2 l ->
+  (forall x, In x l1 -> test x = true) -> (forall x, In x l2 -> test x = false) -> filter test l = l1.
+Proof.
+  intros. induction H.
+  - reflexivity.
+  - simpl. replace (test x) with true. rewrite IHinorder_merge.
+    + reflexivity.
+    + assert (A: forall x0: X, In x0 l1 -> In x0 (x :: l1)). { intros. simpl. right. apply H2. }
+      intros. apply A in H2. apply H0 in H2. apply H2.
+    + apply H1.
+    + symmetry. apply H0. simpl. left. reflexivity.
+  - simpl. replace (test x) with false. rewrite IHinorder_merge.
+    + reflexivity.
+    + apply H0.
+    + assert (A: forall x0: X, In x0 l2 -> In x0 (x :: l2)). { intros. simpl. right. apply H2. }
+      intros. apply A in H2. apply H1 in H2. apply H2.
+    + symmetry. apply H1. simpl. left. reflexivity.
+Qed.
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_filter_challenge : option (nat*string) := None.
@@ -1753,9 +1769,7 @@ Definition manual_grade_for_filter_challenge : option (nat*string) := None.
     evaluates to [true] on all their members, [filter test l] is the
     longest.  Formalize this claim and prove it. *)
 
-(* FILL IN HERE 
-
-    [] *)
+(* FILL IN HERE *)
 
 (** **** Exercise: 4 stars, standard, optional (palindromes)  
 
