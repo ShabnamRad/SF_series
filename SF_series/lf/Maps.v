@@ -210,7 +210,8 @@ Proof. reflexivity. Qed.
 Lemma t_apply_empty : forall (A : Type) (x : string) (v : A),
     (_ !-> v) x = v.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. unfold "'_' '!->' v". reflexivity.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (t_update_eq)  
@@ -222,7 +223,8 @@ Proof.
 Lemma t_update_eq : forall (A : Type) (m : total_map A) x v,
     (x !-> v ; m) x = v.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. unfold "x '!->' v ';' m". rewrite <- eqb_string_refl. reflexivity.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (t_update_neq)  
@@ -235,7 +237,7 @@ Theorem t_update_neq : forall (A : Type) (m : total_map A) x1 x2 v,
     x1 <> x2 ->
     (x1 !-> v ; m) x2 = m x2.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. unfold "x '!->' v ';' m". apply false_eqb_string in H. rewrite H. reflexivity. Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (t_update_shadow)  
@@ -249,7 +251,12 @@ Proof.
 Lemma t_update_shadow : forall (A : Type) (m : total_map A) x v1 v2,
     (x !-> v2 ; x !-> v1 ; m) = (x !-> v2 ; m).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. unfold "x '!->' v ';' m". apply functional_extensionality. intros x0.
+  destruct (eqb_string x x0).
+  - reflexivity.
+  - reflexivity.
+Qed.
+
 (** [] *)
 
 (** For the final two lemmas about total maps, it's convenient to use
