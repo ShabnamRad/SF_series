@@ -1523,7 +1523,9 @@ Proof.
   - (* MEmpty *)
     simpl. omega.
   - simpl. omega.
-  - simpl. Admitted.
+  - simpl.
+
+Admitted.
 
 End Pumping.
 (** [] *)
