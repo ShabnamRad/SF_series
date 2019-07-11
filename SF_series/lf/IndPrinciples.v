@@ -462,9 +462,28 @@ Proof.
     induction, and state the theorem and proof in terms of this
     defined proposition.  *)
 
-(* FILL IN HERE 
+Definition P_passoc (n m p:nat) : Prop :=
+  n + (m + p) = (n + m) + p.
 
-    [] *)
+Theorem plus_assoc'' : forall n m p:nat,
+  P_passoc n m p.
+Proof.
+  intros n m p. induction n as [|n'].
+  - reflexivity.
+  - unfold P_passoc in IHn'. unfold P_passoc. simpl. rewrite -> IHn'. reflexivity.
+Qed.
+
+Definition P_pcomm (n m: nat) : Prop :=
+  n + m = m + n.
+
+Theorem plus_comm''' : forall n m : nat,
+  P_pcomm n m.
+Proof.
+  induction n as [| n'].
+  - intros m. unfold P_pcomm. rewrite <- plus_n_O. reflexivity.
+  - intros m. unfold P_pcomm. simpl. unfold P_pcomm in IHn'. rewrite -> IHn'.
+    rewrite <- plus_n_Sm. reflexivity.
+Qed.
 
 (* ################################################################# *)
 (** * Induction Principles in [Prop] *)
