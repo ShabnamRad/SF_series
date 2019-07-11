@@ -34,8 +34,8 @@ Theorem mult_0_r' : forall n:nat,
 Proof.
   apply nat_ind.
   - (* n = O *) reflexivity.
-  - (* n = S n' *) simpl. intros n' IHn'. rewrite -> IHn'.
-    reflexivity.  Qed.
+  - (* n = S n' *) simpl. intros n' IHn'. rewrite -> IHn'. reflexivity.
+Qed.
 
 (** This proof is basically the same as the earlier one, but a
     few minor differences are worth noting.
@@ -63,7 +63,11 @@ Proof.
 Theorem plus_one_r' : forall n:nat,
   n + 1 = S n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  apply nat_ind.
+  - reflexivity.
+  - simpl. intros n' IHn'. rewrite IHn'. reflexivity.
+Qed.
+
 (** [] *)
 
 (** Coq generates induction principles for every datatype defined with
@@ -108,7 +112,13 @@ Inductive rgb : Type :=
   | red
   | green
   | blue.
+
 Check rgb_ind.
+(* ===> rgb_ind : forall P : rgb -> Prop,
+                    P red ->
+                    P green ->
+                    P blue ->
+                    forall x : rgb, P x *)
 (** [] *)
 
 (** Here's another example, this time with one of the constructors
@@ -140,6 +150,12 @@ Inductive natlist1 : Type :=
 
     [] *)
 
+Check natlist1_ind.
+(* ===> natlist1_ind : forall P : natlist -> Prop,
+                        P nnil ->
+                        (forall l: natlist1, P l -> forall n: nat, P (ncons l n)) ->
+                        forall r, P r *)
+
 (** From these examples, we can extract this general rule:
 
     - The type declaration gives several constructors; each
@@ -165,6 +181,13 @@ Inductive byntree : Type :=
  | bempty
  | bleaf (yn : yesno)
  | nbranch (yn : yesno) (t1 t2 : byntree).
+
+Check byntree_ind.
+(* ===> byntree_ind : forall P : byntree -> Prop,
+                        P bempty ->
+                        (forall yn: yesno, P (bleaf yn)) ->
+                        (forall (yn: yesno) (t1 t2 : byntree), P t1 -> P t2 -> P (nbranch yn t1 t2)) ->
+                        forall b : byntree, P b *)
 (** [] *)
 
 (** **** Exercise: 1 star, standard, optional (ex_set)  
@@ -181,8 +204,11 @@ Inductive byntree : Type :=
     Give an [Inductive] definition of [ExSet]: *)
 
 Inductive ExSet : Type :=
-  (* FILL IN HERE *)
+  | con1 (b: bool)
+  | con2 (n: nat) (e: ExSet)
 .
+
+Check ExSet_ind.
 (** [] *)
 
 (* ################################################################# *)
@@ -224,6 +250,11 @@ Inductive tree (X:Type) : Type :=
   | leaf (x : X)
   | node (t1 t2 : tree X).
 Check tree_ind.
+(* ===> tree_ind :
+          forall (X : Type) (P : tree X -> Prop),
+            (forall x: X, P leaf X x) ->
+            (forall t1 : tree X, P t1 -> forall t2: tree X, P t2 -> P (node X t1 t2)) ->
+            forall t: tree X, P t *)
 (** [] *)
 
 (** **** Exercise: 1 star, standard, optional (mytype)  
@@ -238,7 +269,14 @@ Check tree_ind.
             (forall m : mytype X, P m ->
                forall n : nat, P (constr3 X m n)) ->
             forall m : mytype X, P m
-*) 
+*)
+
+Inductive mytype (X: Type) : Type :=
+  | constr1 (x: X)
+  | constr2 (n: nat)
+  | constr3 (m: mytype X) (n: nat)
+.
+Check mytype_ind.
 (** [] *)
 
 (** **** Exercise: 1 star, standard, optional (foo)  
@@ -253,7 +291,14 @@ Check tree_ind.
              (forall f1 : nat -> foo X Y,
                (forall n : nat, P (f1 n)) -> P (quux X Y f1)) ->
              forall f2 : foo X Y, P f2
-*) 
+*)
+
+Inductive foo (X Y: Type) : Type :=
+  | bar (x: X)
+  | baz (y: Y)
+  | quux (f1: nat -> foo X Y)
+.
+Check foo_ind.
 (** [] *)
 
 (** **** Exercise: 1 star, standard, optional (foo')  
@@ -270,11 +315,12 @@ Inductive foo' (X:Type) : Type :=
      foo'_ind :
         forall (X : Type) (P : foo' X -> Prop),
               (forall (l : list X) (f : foo' X),
-                    _______________________ ->
-                    _______________________   ) ->
-             ___________________________________________ ->
-             forall f : foo' X, ________________________
+                    P f ->
+                    P (C1 X l f)   ) ->
+             P (C2 X) ->
+             forall f : foo' X, P f
 *)
+Check foo'_ind.
 
 (** [] *)
 
