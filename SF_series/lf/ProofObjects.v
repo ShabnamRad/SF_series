@@ -176,10 +176,11 @@ Print ev_4'''.
 
 Theorem ev_8 : even 8.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  apply ev_SS. apply ev_SS. apply ev_SS. apply ev_SS. apply ev_0.
+Qed.
 
-Definition ev_8' : even 8
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition ev_8' : even 8 :=
+  ev_SS 6 (ev_SS 4 (ev_SS 2 (ev_SS 0 ev_0))).
 (** [] *)
 
 (* ################################################################# *)
@@ -381,8 +382,13 @@ Definition and_comm' P Q : P /\ Q <-> Q /\ P :=
 
     Construct a proof object demonstrating the following proposition. *)
 
-Definition conj_fact : forall P Q R, P /\ Q -> Q /\ R -> P /\ R
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition conj_fact : forall P Q R, P /\ Q -> Q /\ R -> P /\ R :=
+  fun P Q R (PQ: P /\ Q) (QR: Q /\ R) =>
+    match PQ with
+    | conj HP HQ => match QR with
+                    | conj HQ HR => conj HP HR
+                    end
+    end.
 (** [] *)
 
 (* ================================================================= *)
@@ -411,8 +417,12 @@ End Or.
     Try to write down an explicit proof object for [or_commut] (without
     using [Print] to peek at the ones we already defined!). *)
 
-Definition or_comm : forall P Q, P \/ Q -> Q \/ P
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition or_comm : forall P Q, P \/ Q -> Q \/ P :=
+  fun P Q (PQ: P \/ Q) =>
+    match PQ with
+    | or_introl HP => or_intror HP
+    | or_intror HQ => or_introl HQ
+    end.
 (** [] *)
 
 (* ================================================================= *)
@@ -452,8 +462,8 @@ Definition some_nat_is_even : exists n, even n :=
 
     Complete the definition of the following proof object: *)
 
-Definition ex_ev_Sn : ex (fun n => even (S n))
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition ex_ev_Sn : ex (fun n => even (S n)) :=
+  ex_intro (fun n => even (S n)) 3 (ev_SS 2 (ev_SS 0 ev_0)).
 (** [] *)
 
 (* ================================================================= *)
@@ -545,7 +555,9 @@ Definition singleton : forall (X:Type) (x:X), []++[x] == x::[]  :=
 Lemma equality__leibniz_equality : forall (X : Type) (x y: X),
   x == y -> forall P:X->Prop, P x -> P y.
 Proof.
-(* FILL IN HERE *) Admitted.
+  intros X x y H P Px. destruct H. apply Px.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 5 stars, standard, optional (leibniz_equality__equality)  
