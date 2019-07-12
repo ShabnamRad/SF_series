@@ -103,18 +103,28 @@ Proof.
     Show that the [total_relation] defined in (an exercise in)
     [IndProp] is not a partial function. *)
 
-(* FILL IN HERE 
-
-    [] *)
+Theorem total_relation_not_a_partial_function :
+  ~ (partial_function total_relation).
+Proof.
+  unfold not. unfold partial_function. intros Hc.
+  assert (0 = 1) as Nonsense. {
+    apply Hc with (x := 0).
+    - apply total_r.
+    - apply total_r. }
+  discriminate Nonsense.
+Qed.
 
 (** **** Exercise: 2 stars, standard, optional (empty_relation_partial)  
 
     Show that the [empty_relation] defined in (an exercise in)
     [IndProp] is a partial function. *)
 
-(* FILL IN HERE 
-
-    [] *)
+Theorem empty_relation_partial_function :
+  partial_function empty_relation.
+Proof.
+  unfold partial_function. intros x y1 y2 H1 H2.
+  inversion H1.
+Qed.
 
 (* ----------------------------------------------------------------- *)
 (** *** Reflexive Relations *)
@@ -169,7 +179,10 @@ Proof.
   unfold lt. unfold transitive.
   intros n m o Hnm Hmo.
   induction Hmo as [| m' Hm'o].
-    (* FILL IN HERE *) Admitted.
+  - apply le_S. apply Hnm.
+  - apply le_S. apply IHHm'o.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (lt_trans'')  
@@ -182,7 +195,10 @@ Proof.
   unfold lt. unfold transitive.
   intros n m o Hnm Hmo.
   induction o as [| o'].
-  (* FILL IN HERE *) Admitted.
+  - apply le_S in Hnm. apply le_trans with (a := (S n)) (b := (S m)) (c := 0). apply Hnm. apply Hmo.
+  - apply le_S in Hnm. apply le_trans with (a := (S n)) (b := (S m)) (c := (S o')). apply Hnm. apply Hmo.
+Qed.
+
 (** [] *)
 
 (** The transitivity of [le], in turn, can be used to prove some facts
@@ -200,7 +216,10 @@ Qed.
 Theorem le_S_n : forall n m,
   (S n <= S m) -> (n <= m).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m H. inversion H.
+  - apply le_n.
+  - apply le_Sn_le in H1. apply H1.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (le_Sn_n_inf)  
@@ -221,7 +240,10 @@ Proof.
 Theorem le_Sn_n : forall n,
   ~ (S n <= n).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  unfold not. intros. induction n as [|n'].
+  - inversion H.
+  - apply IHn'. apply le_S_n. apply H.
+Qed.
 (** [] *)
 
 (** Reflexivity and transitivity are the main concepts we'll need for
@@ -240,7 +262,10 @@ Definition symmetric {X: Type} (R: relation X) :=
 Theorem le_not_symmetric :
   ~ (symmetric le).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  unfold not. unfold symmetric. intros Hc.
+  assert (1 <= 0) as ns. { apply Hc. apply le_S. apply le_n. }
+  inversion ns.
+Qed.
 (** [] *)
 
 (** A relation [R] is _antisymmetric_ if [R a b] and [R b a] together
@@ -254,7 +279,12 @@ Definition antisymmetric {X: Type} (R: relation X) :=
 Theorem le_antisymmetric :
   antisymmetric le.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  unfold antisymmetric.
+  intros. inversion H.
+  - reflexivity.
+  - rewrite <- H2 in H0. assert (S m <= m) as ns. { apply le_trans with a. apply H0. apply H1. }
+    apply le_Sn_n in ns. inversion ns.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (le_step)  *)
@@ -263,7 +293,9 @@ Theorem le_step : forall n m p,
   m <= S p ->
   n <= p.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  unfold lt. intros. assert (S n <= S p) as H1. { apply le_trans with m. apply H. apply H0. }
+  apply le_S_n in H1. apply H1.
+Qed.
 (** [] *)
 
 (* ----------------------------------------------------------------- *)
@@ -379,7 +411,11 @@ Lemma rsc_trans :
       clos_refl_trans_1n R y z ->
       clos_refl_trans_1n R x z.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X R x y z Hxy Hyz. generalize dependent z.
+  induction Hxy as [| x y' y H H' IH].
+  - intros z H. apply H.
+  - intros z E. apply rt1n_trans with y'. apply H. apply IH. apply E.
+Qed.
 (** [] *)
 
 (** Then we use these facts to prove that the two definitions of
@@ -391,7 +427,17 @@ Theorem rtc_rsc_coincide :
          forall (X:Type) (R: relation X) (x y : X),
   clos_refl_trans R x y <-> clos_refl_trans_1n R x y.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X R x y. split.
+  - intros H. induction H as [ | | x y z Hxy IH1 Hyz IH2 ].
+    + apply rsc_R. apply H.
+    + apply rt1n_refl.
+    + apply rsc_trans with y. apply IH1. apply IH2.
+  - intros H. induction H as [ | x y z Hxy IH1 IH2].
+    + apply rt_refl.
+    + apply rt_trans with y.
+      * apply rt_step. apply Hxy.
+      * apply IH2.
+Qed.
 (** [] *)
 
 (* Wed Jan 9 12:02:46 EST 2019 *)
