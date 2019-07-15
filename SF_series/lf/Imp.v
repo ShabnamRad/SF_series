@@ -436,13 +436,25 @@ Qed.
     it is sound.  Use the tacticals we've just seen to make the proof
     as elegant as possible. *)
 
-Fixpoint optimize_0plus_b (b : bexp) : bexp
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Fixpoint optimize_0plus_b (b : bexp) : bexp :=
+  match b with
+    | BTrue  => BTrue
+    | BFalse => BFalse
+    | BEq a1 a2 => BEq (optimize_0plus a1) (optimize_0plus a2)
+    | BLe a1 a2 => BLe (optimize_0plus a1) (optimize_0plus a2)
+    | BNot e => BNot (optimize_0plus_b e)
+    | BAnd e1 e2 => BAnd (optimize_0plus_b e1) (optimize_0plus_b e2)
+  end.
 
 Theorem optimize_0plus_b_sound : forall b,
   beval (optimize_0plus_b b) = beval b.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros b.
+  induction b;
+  try reflexivity;
+  try (simpl; rewrite optimize_0plus_sound; rewrite optimize_0plus_sound; reflexivity);
+  try (simpl; try(rewrite IHb); try (rewrite IHb1; rewrite IHb2); reflexivity).
+Qed.
 (** [] *)
 
 (** **** Exercise: 4 stars, standard, optional (optimize)  
@@ -455,9 +467,42 @@ Proof.
     optimization and its correctness proof -- and build up to
     something more interesting incrementially.)  *)
 
-(* FILL IN HERE 
+Fixpoint optimize_0mult (a:aexp) : aexp :=
+  match a with
+  | ANum n => ANum n
+  | APlus  e1 e2 => APlus  (optimize_0mult e1) (optimize_0mult e2)
+  | AMinus e1 e2 => AMinus (optimize_0mult e1) (optimize_0mult e2)
+  | AMult (ANum 0) e2 => ANum 0
+  | AMult  e1 e2 => AMult  (optimize_0mult e1) (optimize_0mult e2)
+  end.
 
-    [] *)
+Fixpoint optimize_0mult_b (b : bexp) : bexp :=
+  match b with
+    | BTrue  => BTrue
+    | BFalse => BFalse
+    | BEq a1 a2 => BEq (optimize_0mult a1) (optimize_0mult a2)
+    | BLe a1 a2 => BLe (optimize_0mult a1) (optimize_0mult a2)
+    | BNot e => BNot (optimize_0mult_b e)
+    | BAnd e1 e2 => BAnd (optimize_0mult_b e1) (optimize_0mult_b e2)
+  end.
+
+Theorem optimize_0mult_sound : forall a,
+  aeval (optimize_0mult a) = aeval a.
+Proof.
+  intros a.
+  induction a;
+    (* Most cases follow directly by the IH *)
+    try (simpl; rewrite IHa1; rewrite IHa2; reflexivity);
+    (* ... or are immediate by definition *)
+    try reflexivity.
+  (* The interesting case is when a = AMult a1 a2. *)
+  - (* AMult *)
+    destruct a1; try (simpl; simpl in IHa1; rewrite IHa1;
+                      rewrite IHa2; reflexivity).
+    + (* a1 = ANum n *) destruct n.
+      * reflexivity.
+      * simpl. rewrite IHa2. reflexivity.
+Qed.
 
 (* ================================================================= *)
 (** ** Defining New Tactic Notations *)
@@ -729,7 +774,6 @@ Inductive aevalR : aexp -> nat -> Prop :=
 
     Write out a corresponding definition of boolean evaluation as a
     relation (in inference rule notation). *)
-(* FILL IN HERE *)
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_beval_rules : option (nat*string) := None.
@@ -798,13 +842,41 @@ Qed.
     [aevalR], and prove that it is equivalent to [beval]. *)
 
 Inductive bevalR: bexp -> bool -> Prop :=
-(* FILL IN HERE *)
+  | E_BTrue :
+      bevalR BTrue true
+  | E_BFalse :
+      bevalR BFalse false
+  | E_BEq (e1 e2: aexp) (n1 n2: nat) :
+      e1 \\ n1 ->
+      e2 \\ n2 ->
+      bevalR (BEq e1 e2) (n1 =? n2)
+  | E_BLe (e1 e2: aexp) (n1 n2: nat) :
+      e1 \\ n1 ->
+      e2 \\ n2 ->
+      bevalR (BLe e1 e2) (n1 <=? n2)
+  | E_BNot (e1: bexp) (b1: bool):
+      bevalR e1 b1 ->
+      bevalR (BNot e1) (negb b1)
+  | E_BAnd (e1 e2: bexp) (b1 b2: bool):
+      bevalR e1 b1 ->
+      bevalR e2 b2 ->
+      bevalR (BAnd e1 e2) (andb b1 b2)
 .
 
 Lemma beval_iff_bevalR : forall b bv,
   bevalR b bv <-> beval b = bv.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  split.
+  - intros H; induction H;
+    try (rewrite aeval_iff_aevalR in H; rewrite aeval_iff_aevalR in H0; rewrite <- H; rewrite <- H0; reflexivity);
+    try (subst; reflexivity).
+  - intros. generalize dependent bv. induction b; simpl; intros;
+    try (subst; constructor);
+    try (apply aeval_iff_aevalR; reflexivity).
+    apply IHb. reflexivity.
+    apply IHb1. reflexivity.
+    apply IHb2. reflexivity.
+Qed.
 (** [] *)
 
 End AExp.
