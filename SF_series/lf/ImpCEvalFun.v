@@ -210,17 +210,18 @@ Definition test_ceval (st:state) (c:com) :=
    [X] (inclusive: [1 + 2 + ... + X]) in the variable [Y].  Make sure
    your solution satisfies the test that follows. *)
 
-Definition pup_to_n : com
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
-
-(* 
+Definition pup_to_n : com :=
+  Y ::= 0;;
+  (WHILE ~(X = 0) DO
+    Y ::= Y + X;;
+    X ::= X - 1
+  END)
+.
 
 Example pup_to_n_1 :
   test_ceval (X !-> 5) pup_to_n
   = Some (0, 15, 0).
 Proof. reflexivity. Qed.
-
-    [] *)
 
 (** **** Exercise: 2 stars, standard, optional (peven)  
 
@@ -228,9 +229,21 @@ Proof. reflexivity. Qed.
     sets [Z] to [1] otherwise.  Use [test_ceval] to test your
     program. *)
 
-(* FILL IN HERE 
+Definition X_even_in_Z : com :=
+  Z ::= X;;
+  (WHILE 2 <= Z DO
+    Z ::= Z - 2
+  END).
 
-    [] *)
+Example X_even_in_Z_64 :
+  test_ceval (X !-> 64) X_even_in_Z
+  = Some (64, 0, 0).
+Proof. reflexivity. Qed.
+
+Example X_even_in_Z_93 :
+  test_ceval (X !-> 93) X_even_in_Z
+  = Some (93, 0, 1).
+Proof. reflexivity. Qed.
 
 (* ################################################################# *)
 (** * Relational vs. Step-Indexed Evaluation *)
