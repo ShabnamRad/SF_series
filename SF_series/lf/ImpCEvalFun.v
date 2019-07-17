@@ -375,8 +375,33 @@ Theorem ceval__ceval_step: forall c st st',
       exists i, ceval_step st c i = Some st'.
 Proof.
   intros c st st' Hce.
-  induction Hce.
-  (* FILL IN HERE *) Admitted.
+  induction Hce;
+    try (inversion IHHce; exists (S x); simpl; rewrite H; assumption); (* E_IfTrue *) (* E_IfFalse *)
+    try (exists 1; simpl; rewrite H; reflexivity); (* E_WhileEnd *)
+    try (exists 1; reflexivity).
+  - (* E_Seq *) inversion IHHce1 as [x1 H1]. clear IHHce1. inversion IHHce2 as [x2 H2]. clear IHHce2.
+    exists (x1 + x2). induction x1 as [|x1'].
+    + inversion H1.
+    + induction x2 as [|x2'].
+      * inversion H2.
+      * simpl. assert (HH: ceval_step st c1 (S x1' + x2') = Some st'). { apply ceval_step_more with (S x1'). omega. apply H1. }
+        destruct (ceval_step st c1 (x1' + S x2')) eqn:HE.
+        { rewrite <-plus_n_Sm in HE. rewrite <-plus_Sn_m in HE.
+          rewrite HH in HE. inversion HE. subst. rewrite plus_comm.
+          apply ceval_step_more with (S x2'). omega. assumption. }
+        { rewrite <-plus_n_Sm in HE. rewrite <-plus_Sn_m in HE. rewrite HH in HE. inversion HE. }
+  - (* E_WhileLoop *) inversion IHHce1 as [x1 H1]. clear IHHce1. inversion IHHce2 as [x2 H2]. clear IHHce2.
+    exists (x1 + x2). induction x1 as [|x1'].
+    + inversion H1.
+    + induction x2 as [|x2'].
+      * inversion H2.
+      * simpl. assert (HH: ceval_step st c (S x1' + x2') = Some st'). { apply ceval_step_more with (S x1'). omega. apply H1. }
+        destruct (ceval_step st c (x1' + S x2')) eqn:HE.
+        { rewrite <-plus_n_Sm in HE. rewrite <-plus_Sn_m in HE.
+          rewrite HH in HE. inversion HE. subst. rewrite plus_comm. rewrite H.
+          apply ceval_step_more with (S x2'). omega. assumption. }
+        { rewrite <-plus_n_Sm in HE. rewrite <-plus_Sn_m in HE. rewrite HH in HE. inversion HE. }
+Qed.
 (** [] *)
 
 Theorem ceval_and_ceval_step_coincide: forall c st st',
