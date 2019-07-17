@@ -128,7 +128,16 @@ Theorem skip_right : forall c,
     (c ;; SKIP)
     c.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros c st st'.
+  split; intros H.
+  - inversion H; subst.
+    inversion H5. subst.
+    assumption.
+  - apply E_Seq with st'.
+    assumption.
+    constructor.
+Qed.
+
 (** [] *)
 
 (** Similarly, here is a simple transformation that optimizes [TEST]
@@ -216,7 +225,15 @@ Theorem TEST_false : forall b c1 c2,
     (TEST b THEN c1 ELSE c2 FI)
     c2.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros b c1 c2 Hb.
+  split; intros H.
+  - inversion H; subst.
+    + unfold bequiv in Hb. simpl in Hb.
+      rewrite Hb in H5. inversion H5.
+    + assumption.
+  - apply E_IfFalse; try assumption.
+    unfold bequiv in Hb. simpl in Hb.
+    rewrite Hb. reflexivity. Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, standard (swap_if_branches)  
