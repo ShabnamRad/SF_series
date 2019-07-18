@@ -246,7 +246,13 @@ Theorem swap_if_branches : forall b e1 e2,
     (TEST b THEN e1 ELSE e2 FI)
     (TEST BNot b THEN e2 ELSE e1 FI).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros b e1 e2 st st'. split.
+  - intros H. inversion H; subst;
+     [apply E_IfFalse | apply E_IfTrue]; simpl; try (rewrite H5; reflexivity); try assumption.
+  - intros H. Search negb. inversion H; subst;
+      [apply E_IfFalse | apply E_IfTrue]; simpl in H5;
+      try (apply negb_true_iff in H5; apply H5); try (apply negb_false_iff in H5; apply H5); try assumption.
+Qed.
 (** [] *)
 
 (** For [WHILE] loops, we can give a similar pair of theorems.  A loop
@@ -349,7 +355,9 @@ Theorem WHILE_true : forall b c,
     (WHILE b DO c END)
     (WHILE true DO SKIP END).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros b c Hb st st'. split; intros H; simpl in Hb; apply WHILE_true_nonterm in H; inversion H;
+  try assumption; try constructor.
+Qed.
 (** [] *)
 
 (** A more interesting fact about [WHILE] commands is that any number
@@ -384,7 +392,12 @@ Proof.
 Theorem seq_assoc : forall c1 c2 c3,
   cequiv ((c1;;c2);;c3) (c1;;(c2;;c3)).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros c1 c2 c3 st st'. split; intros H.
+  - inversion H; subst. inversion H2; subst. apply E_Seq with st'1. assumption.
+    apply E_Seq with st'0. assumption. assumption.
+  - inversion H; subst. inversion H5; subst. apply E_Seq with st'1. apply E_Seq with st'0.
+    assumption. assumption. assumption.
+Qed.
 (** [] *)
 
 (** Proving program properties involving assignments is one place
@@ -414,7 +427,12 @@ Theorem assign_aequiv : forall (x : string) e,
   aequiv x e ->
   cequiv SKIP (x ::= e).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros x e Hx st st'. split; intros H; inversion H; subst.
+  - assert (Hc : st' =[ x ::= e ]=> (x !-> aeval st' e ; st')).
+    { apply E_Ass. reflexivity. }
+    rewrite <- Hx in Hc. simpl in Hc. rewrite t_update_same in Hc. assumption.
+  - rewrite <- Hx. simpl. rewrite t_update_same. constructor.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard (equiv_classes)  *)
@@ -431,12 +449,12 @@ Proof.
     Write down your answer below in the definition of
     [equiv_classes]. *)
 
-Definition prog_a : com :=
+Definition prog_a : com := (* X <= 0 : skip. X > 0 : while true, x increasing *)
   (WHILE ~(X <= 0) DO
     X ::= X + 1
   END)%imp.
 
-Definition prog_b : com :=
+Definition prog_b : com := (* (x, y, z) => (x, 0, z) *)
   (TEST X = 0 THEN
     X ::= X + 1;;
     Y ::= 1
@@ -446,40 +464,41 @@ Definition prog_b : com :=
   X ::= X - Y;;
   Y ::= 0)%imp.
 
-Definition prog_c : com :=
+Definition prog_c : com := (* skip *)
   SKIP%imp.
 
-Definition prog_d : com :=
+Definition prog_d : com := (* X = 0 : skip. ow : while true, x inc or dec *)
   (WHILE ~(X = 0) DO
     X ::= (X * Y) + 1
   END)%imp.
 
-Definition prog_e : com :=
+Definition prog_e : com := (* y = 0 *)
   (Y ::= 0)%imp.
 
-Definition prog_f : com :=
+Definition prog_f : com := (* while true (x, x+1, z) *)
   (Y ::= X + 1;;
   WHILE ~(X = Y) DO
     Y ::= X + 1
   END)%imp.
 
-Definition prog_g : com :=
+Definition prog_g : com := (* while true *)
   (WHILE true DO
     SKIP
   END)%imp.
 
-Definition prog_h : com :=
+Definition prog_h : com := (* skip *)
   (WHILE ~(X = X) DO
     X ::= X + 1
   END)%imp.
 
-Definition prog_i : com :=
+Definition prog_i : com := (* X = Y : skip. ow : while true (y + 1, y, z) *)
   (WHILE ~(X = Y) DO
     X ::= Y + 1
   END)%imp.
 
-Definition equiv_classes : list (list com)
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition equiv_classes : list (list com) :=
+  [ [prog_a]; [prog_b]; [prog_c; prog_h] ; [prog_e]; [prog_f; prog_g]; [prog_d] ;
+         [prog_i] ].
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_equiv_classes : option (nat*string) := None.
