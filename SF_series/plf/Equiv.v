@@ -1205,23 +1205,32 @@ Fixpoint optimize_0plus_aexp (a:aexp) : aexp :=
 Theorem optimize_0plus_aexp_sound:
   atrans_sound optimize_0plus_aexp.
 Proof.
-  intros a. induction a.
+  unfold atrans_sound. unfold aequiv. intros. induction a.
   - (* ANum *) apply refl_aequiv.
   - (* AId *) apply refl_aequiv.
   - (* APlus *) destruct a1 eqn:Ea1.
     + (* a1 = ANum n *) destruct n eqn:En.
-      * (* n = 0 *)  simpl. apply IHa2.
-      * (* n <> 0 *) simpl. apply IHa2. reflexivity.
+      * (* n = 0 *)  simpl. rewrite <- IHa2. reflexivity.
+      * (* n <> 0 *) simpl. rewrite <- IHa2. reflexivity.
     + (* a1 = x *) simpl. rewrite IHa2. reflexivity.
     + (* a1 = APlus a1_1 a1_2 *)
-      simpl. simpl in IHa1. apply IHa1.
-      rewrite IHa2. reflexivity.
+      replace (optimize_0plus_aexp (a3 + a4 + a2))
+        with (APlus (optimize_0plus_aexp (a3 + a4)) (optimize_0plus_aexp a2)) by reflexivity.
+      replace (aeval st (optimize_0plus_aexp (a3 + a4) + optimize_0plus_aexp a2))
+        with (aeval st (optimize_0plus_aexp (a3 + a4)) + aeval st (optimize_0plus_aexp a2)) by reflexivity.
+      rewrite <- IHa1. rewrite <- IHa2. reflexivity.
     + (* a1 = AMinus a1_1 a1_2 *)
-      simpl. simpl in IHa1. rewrite IHa1.
-      rewrite IHa2. reflexivity.
+      replace (optimize_0plus_aexp (a3 - a4 + a2))
+        with (APlus (optimize_0plus_aexp (a3 - a4)) (optimize_0plus_aexp a2)) by reflexivity.
+      replace (aeval st (optimize_0plus_aexp (a3 - a4) + optimize_0plus_aexp a2))
+        with (aeval st (optimize_0plus_aexp (a3 - a4)) + aeval st (optimize_0plus_aexp a2)) by reflexivity.
+      rewrite <- IHa1. rewrite <- IHa2. reflexivity.
     + (* a1 = AMult a1_1 a1_2 *)
-      simpl. simpl in IHa1. rewrite IHa1.
-      rewrite IHa2. reflexivity.
+      replace (optimize_0plus_aexp (a3 * a4 + a2))
+        with (APlus (optimize_0plus_aexp (a3 * a4)) (optimize_0plus_aexp a2)) by reflexivity.
+      replace (aeval st (optimize_0plus_aexp (a3 * a4) + optimize_0plus_aexp a2))
+        with (aeval st (optimize_0plus_aexp (a3 * a4)) + aeval st (optimize_0plus_aexp a2)) by reflexivity.
+      rewrite <- IHa1. rewrite <- IHa2. reflexivity.
   - (* AMinus *)
     simpl. rewrite IHa1. rewrite IHa2. reflexivity.
   - (* AMult *)
@@ -1237,13 +1246,13 @@ Fixpoint optimize_0plus_bexp (b : bexp) : bexp :=
     | BAnd e1 e2 => BAnd (optimize_0plus_bexp e1) (optimize_0plus_bexp e2)
   end.
 
-Theorem optimize_0plus_bexp_sound : forall b st,
-  beval st (optimize_0plus_bexp b) = beval st b.
+Theorem optimize_0plus_bexp_sound :
+  btrans_sound optimize_0plus_bexp.
 Proof.
-  intros b.
-  induction b; intros st;
+  unfold btrans_sound. unfold bequiv. intros.
+  induction b;
   try reflexivity;
-  try (simpl; rewrite optimize_0plus_aexp_sound; rewrite optimize_0plus_aexp_sound; reflexivity);
+  try (simpl; rewrite <- optimize_0plus_aexp_sound; rewrite <- optimize_0plus_aexp_sound; reflexivity);
   try (simpl; try(rewrite IHb); try (rewrite IHb1; rewrite IHb2); reflexivity).
 Qed.
 
@@ -1256,21 +1265,27 @@ Fixpoint optimize_0plus_com (c : com) : com :=
     | CWhile b c => CWhile (optimize_0plus_bexp b) (optimize_0plus_com c)
   end.
 
-Theorem optimize_0plus_com_sound : forall (c : com),
-  cequiv (optimize_0plus_com c) c.
+Theorem optimize_0plus_com_sound :
+  ctrans_sound optimize_0plus_com.
 Proof.
+  unfold ctrans_sound.
   intros c. induction c.
   - apply refl_cequiv.
   - apply CAss_congruence. apply optimize_0plus_aexp_sound.
+  - simpl. apply CSeq_congruence. assumption. assumption.
+  - simpl. apply CIf_congruence. apply optimize_0plus_bexp_sound. assumption. assumption.
+  - simpl. apply CWhile_congruence. apply optimize_0plus_bexp_sound. assumption.
+Qed.
 
 Definition optimize_combined (c:com) : com :=
   optimize_0plus_com (fold_constants_com c).
 
-Theorem optimize_combined_sound : forall (c : com) (st st': state),
-  ceval (optimize_combined c) st st' =
-  ceval c st st'.
+Theorem optimize_combined_sound :
+  ctrans_sound optimize_combined.
 Proof.
-  Admitted.
+  unfold ctrans_sound. intros c. unfold optimize_combined. apply trans_cequiv with (fold_constants_com c).
+  apply fold_constants_com_sound. apply optimize_0plus_com_sound.
+Qed.
 
 (* ################################################################# *)
 (** * Proving Inequivalence *)
