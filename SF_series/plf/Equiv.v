@@ -1608,7 +1608,8 @@ Inductive ceval : com -> state -> state -> Prop :=
       st  =[ c ]=> st' ->
       st' =[ WHILE b DO c END ]=> st'' ->
       st  =[ WHILE b DO c END ]=> st''
-(* FILL IN HERE *)
+  | E_HAVOC : forall st n x,
+      st =[ HAVOC x ]=> (x !-> n ; st)
 
   where "st =[ c ]=> st'" := (ceval c st st').
 Close Scope imp_scope.
@@ -1618,12 +1619,14 @@ Close Scope imp_scope.
 
 Example havoc_example1 : empty_st =[ (HAVOC X)%imp ]=> (X !-> 0).
 Proof.
-(* FILL IN HERE *) Admitted.
+  apply E_HAVOC.
+Qed.
 
 Example havoc_example2 :
   empty_st =[ (SKIP;; HAVOC Z)%imp ]=> (Z !-> 42).
 Proof.
-(* FILL IN HERE *) Admitted.
+  apply E_Seq with empty_st. apply E_Skip. apply E_HAVOC.
+Qed.
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_Check_rule_for_HAVOC : option (nat*string) := None.
@@ -1652,7 +1655,21 @@ Definition pYX :=
 
 Theorem pXY_cequiv_pYX :
   cequiv pXY pYX \/ ~cequiv pXY pYX.
-Proof. (* FILL IN HERE *) Admitted.
+Proof.
+  left. unfold not, pXY, pYX, cequiv. intros st st'.
+  split; intros H.
+  - inversion H; subst. inversion H2; subst. inversion H5; subst.
+    apply E_Seq with (Y !-> n0; st).
+    + apply E_HAVOC.
+    + replace (Y !-> n0; X !-> n; st) with (X !-> n; Y !-> n0; st). apply E_HAVOC.
+      apply t_update_permute. intros contra. inversion contra.
+  - inversion H; subst. inversion H2; subst. inversion H5; subst.
+    apply E_Seq with (X !-> n0; st).
+    + apply E_HAVOC.
+    + replace (X !-> n0; Y !-> n; st) with (Y !-> n; X !-> n0; st). apply E_HAVOC.
+      apply t_update_permute. intros contra. inversion contra.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 4 stars, standard, optional (havoc_copy)  
@@ -1671,7 +1688,9 @@ Definition pcopy :=
 
 Theorem ptwice_cequiv_pcopy :
   cequiv ptwice pcopy \/ ~cequiv ptwice pcopy.
-Proof. (* FILL IN HERE *) Admitted.
+Proof.
+  right. unfold not, cequiv, ptwice, pcopy. intros contra.
+  Admitted.
 (** [] *)
 
 (** The definition of program equivalence we are using here has some
