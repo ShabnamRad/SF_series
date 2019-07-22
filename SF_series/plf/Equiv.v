@@ -1443,14 +1443,49 @@ Lemma aeval_weakening : forall x st a ni,
   var_not_used_in_aexp x a ->
   aeval (x !-> ni ; st) a = aeval st a.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros x st a ni H. induction H; try reflexivity; try (simpl; auto).
+  apply t_update_neq; assumption.
+Qed.
 
 (** Using [var_not_used_in_aexp], formalize and prove a correct version
     of [subst_equiv_property]. *)
 
-(* FILL IN HERE 
+Definition subst_var_not_used_in_aexp := forall x1 x2 a1 a2,
+  var_not_used_in_aexp x1 a1 ->
+  cequiv (x1 ::= a1;; x2 ::= a2) (x1 ::= a1;; x2 ::= subst_aexp x1 a1 a2).
 
-    [] *)
+Lemma var_not_used_aeval_const : forall x a st n,
+  var_not_used_in_aexp x a -> aeval st a = aeval (x !-> n; st) a.
+Proof.
+  intros. generalize dependent st. generalize dependent n. induction H; intros;
+  (* Nums *)
+  try reflexivity;
+  (* Ids *)
+  try (simpl; rewrite t_update_neq; try reflexivity; try assumption);
+  (* Recursive cases *)
+  try (simpl;
+       replace (aeval (x !-> n; st) a1) with (aeval st a1) by (apply IHvar_not_used_in_aexp1);
+       replace (aeval (x !-> n; st) a2) with (aeval st a2) by (apply IHvar_not_used_in_aexp2);
+       reflexivity).
+Qed.
+
+Lemma var_not_used_subst : forall st x1 a1 a2,
+  var_not_used_in_aexp x1 a1 -> st x1 = aeval st a1 -> aeval st a2 = aeval st (subst_aexp x1 a1 a2).
+Proof.
+  intros. induction a2;
+  try reflexivity;
+  try (simpl; destruct (eqb_string x1 x) eqn:E; try (apply eqb_string_true_iff in E; rewrite <- E; assumption); try reflexivity);
+  try (simpl; rewrite <- IHa2_1; rewrite <- IHa2_2; reflexivity).
+Qed.
+
+Theorem subst_var_not_used_in_aexp_sound : subst_var_not_used_in_aexp.
+Proof.
+  intros x1 x2 a1 a2 H. unfold cequiv. intros st st'.
+  split; intros H1; inversion H1; subst;
+  apply E_Seq with (x1 !-> (aeval st a1); st); try( apply E_Ass; reflexivity);
+  inversion H3; subst; inversion H6; subst; apply E_Ass; [symmetry|];
+  apply var_not_used_subst; try assumption; try (rewrite t_update_eq; apply var_not_used_aeval_const; assumption).
+Qed.
 
 (** **** Exercise: 3 stars, standard (inequiv_exercise)  
 
@@ -1459,7 +1494,11 @@ Proof.
 Theorem inequiv_exercise:
   ~ cequiv (WHILE true DO SKIP END) SKIP.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros H. unfold cequiv in H. assert (HSkip: forall st, st =[ SKIP ]=> st) by (apply E_Skip).
+  assert (HEmpty: empty_st =[ SKIP ]=> empty_st) by (apply HSkip).
+  apply H in HEmpty. apply WHILE_true_nonterm in HEmpty. inversion HEmpty. constructor.
+Qed.
+
 (** [] *)
 
 (* ################################################################# *)
