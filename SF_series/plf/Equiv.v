@@ -1689,8 +1689,17 @@ Definition pcopy :=
 Theorem ptwice_cequiv_pcopy :
   cequiv ptwice pcopy \/ ~cequiv ptwice pcopy.
 Proof.
-  right. unfold not, cequiv, ptwice, pcopy. intros contra.
-  Admitted.
+  right. unfold cequiv. intros contra.
+  assert (H1: empty_st =[ ptwice ]=> (Y !-> 1; X !-> 0)). { apply E_Seq with (X !-> 0). constructor. constructor. }
+  apply contra in H1. inversion H1; subst. inversion H2; subst. inversion H5; subst.
+  simpl in H6. replace ((X !-> n) X) with n in H6 by reflexivity.
+  destruct n.
+  - assert ((Y !-> 0; X !-> 0) Y = (Y !-> 1; X !-> 0) Y). { rewrite H6. reflexivity. }
+    inversion H.
+  - assert ((Y !-> S n; X !-> S n) X = (Y !-> 1; X !-> 0) X). { rewrite H6. reflexivity. }
+    inversion H.
+Qed.
+
 (** [] *)
 
 (** The definition of program equivalence we are using here has some
@@ -1726,7 +1735,9 @@ Definition p2 : com :=
 
 Lemma p1_may_diverge : forall st st', st X <> 0 ->
   ~ st =[ p1 ]=> st'.
-Proof. (* FILL IN HERE *) Admitted.
+Proof.
+  intros. unfold p1.
+
 
 Lemma p2_may_diverge : forall st st', st X <> 0 ->
   ~ st =[ p2 ]=> st'.

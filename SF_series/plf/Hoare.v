@@ -266,7 +266,7 @@ Notation "{{ P }}  c  {{ Q }}" :=
         WHILE ~(X = 0) DO X ::= X + 1 END
       {{X = 100}}
 *)
-(* FILL IN HERE 
+(* FILL IN HERE : 1, 2, 3, 4, 6, 7, 8, 9.
 
     [] *)
 
@@ -483,7 +483,19 @@ Proof.
    ...into formal statements (use the names [assn_sub_ex1]
    and [assn_sub_ex2]) and use [hoare_asgn] to prove them. *)
 
-(* FILL IN HERE *)
+Example assn_sub_ex1 :
+  {{(fun st => st X <= 10) [X |-> 2 * X] }}
+  X ::= 2 * X
+  {{ fun st => st X <= 10 }}.
+Proof.
+  apply hoare_asgn. Qed.
+
+Example assn_sub_ex2 :
+  {{(fun st => 0 <= st X /\ st X <= 5) [X |-> 3] }}
+  X ::= 3
+  {{fun st => 0 <= st X /\ st X <= 5 }}.
+Proof.
+  apply hoare_asgn. Qed.
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_hoare_asgn_examples : option (nat*string) := None.
@@ -505,7 +517,7 @@ Definition manual_grade_for_hoare_asgn_examples : option (nat*string) := None.
     [a], and your counterexample needs to exhibit an [a] for which
     the rule doesn't work.) *)
 
-(* FILL IN HERE *)
+(* a = X + 1 *)
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_hoare_asgn_wrong : option (nat*string) := None.
@@ -536,7 +548,14 @@ Theorem hoare_asgn_fwd :
   {{fun st => P (X !-> m ; st)
            /\ st X = aeval (X !-> m ; st) a }}.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros m a P. unfold hoare_triple. intros st st' H [Hp Hm].
+  assert (Hst: st = (X !-> (st X); st')).
+    { inversion H; subst. rewrite t_update_shadow. rewrite t_update_same. reflexivity. }
+  split.
+  - rewrite <- Hm. rewrite <- Hst. assumption.
+  - inversion H; subst. rewrite t_update_eq. rewrite <- Hst. reflexivity.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 2 stars, advanced, optional (hoare_asgn_fwd_exists)  
@@ -560,7 +579,14 @@ Theorem hoare_asgn_fwd_exists :
                 st X = aeval (X !-> m ; st) a }}.
 Proof.
   intros a P.
-  (* FILL IN HERE *) Admitted.
+  unfold hoare_triple. intros st st' H HP. exists (st X).
+  assert (Hst: st = (X !-> (st X); st')).
+    { inversion H; subst. rewrite t_update_shadow. rewrite t_update_same. reflexivity. }
+  split.
+  - rewrite <- Hst. assumption.
+  - inversion H; subst. rewrite t_update_eq. rewrite <- Hst. reflexivity.
+Qed.
+
 (** [] *)
 
 (* ================================================================= *)
@@ -814,7 +840,19 @@ Qed.
    [assn_sub_ex2']) and use [hoare_asgn] and [hoare_consequence_pre]
    to prove them. *)
 
-(* FILL IN HERE *)
+Example assn_sub_ex1' :
+  {{(fun st => st X + 1 <= 5) }}  X ::= X + 1  {{(fun st => st X <= 5) }}.
+Proof.
+  eapply hoare_consequence_pre. apply hoare_asgn.
+  intros st H. unfold assn_sub. simpl. rewrite t_update_eq. assumption.
+Qed.
+
+Example assn_sub_ex2' :
+  {{(fun st => 0 <= 3 /\ 3 <= 5 )}}  X ::= 3  {{(fun st => 0 <= st X /\ st X <= 5)}}.
+Proof.
+  eapply hoare_consequence_pre. apply hoare_asgn.
+  intros st H. unfold assn_sub. simpl. rewrite t_update_eq. assumption.
+Qed.
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_hoare_asgn_examples_2 : option (nat*string) := None.
@@ -920,7 +958,10 @@ Example hoare_asgn_example4 :
   X ::= 1;; Y ::= 2
   {{fun st => st X = 1 /\ st Y = 2}}.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  eapply hoare_seq. apply hoare_asgn. eapply hoare_consequence_pre.
+  apply hoare_asgn. intros st H. unfold assn_sub. split; simpl; reflexivity.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars, standard (swap_exercise)  
@@ -936,15 +977,19 @@ Proof.
     your proof will want to start at the end and work back to the
     beginning of your program.)  *)
 
-Definition swap_program : com
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition swap_program : com :=
+  Z ::= X;; X ::= Y;; Y ::= Z.
 
 Theorem swap_exercise :
   {{fun st => st X <= st Y}}
   swap_program
   {{fun st => st Y <= st X}}.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  unfold swap_program. eapply hoare_seq. eapply hoare_seq.
+  apply hoare_asgn. apply hoare_asgn. eapply hoare_consequence_pre.
+  apply hoare_asgn. intros st Hxy. apply Hxy.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars, standard (hoarestate1)  
